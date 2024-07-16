@@ -6,7 +6,7 @@ import traceback
 app = Flask(__name__)
 
 # Initialize News API client
-newsapi = NewsApiClient(api_key="3a990edb553f4b21b39edf52d44da5e6")
+newsapi = NewsApiClient(api_key="a5e6")
 
 
 def is_related_to_padres(article):
