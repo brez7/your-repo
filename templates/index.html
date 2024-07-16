@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>San Diego Padres News Search</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .search-container {
+            max-width: 1200px;
+            margin: 50px auto;
+        }
+        .results-container {
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 1.25rem;
+        }
+        .btn-dark-green {
+            background-color: #006400;
+            border-color: #006400;
+            color: #ffffff;
+        }
+        .btn-dark-green:hover {
+            background-color: #004b23;
+            border-color: #004b23;
+            color: #ffffff;
+        }
+        .news-source {
+            color: #ff0000;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .news-source:hover {
+            color: #cc0000;
+        }
+        .results-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .published-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <h1 class="mb-4">Search San Diego Padres News</h1>
+        <form id="news-form">
+            <div class="form-group">
+                <label for="keyword">Additional Keyword (optional):</label>
+                <input type="text" class="form-control" id="keyword" placeholder="Enter keyword">
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+    <div class="results-container">
+        <div id="results" class="row mt-4 results-section">
+            {% if articles %}
+                {% for article in articles %}
+                    <div class="col-md-4">
+                        <div class="card">
+                            <img src="{{ article.urlToImage }}" class="card-img-top" alt="Thumbnail">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ article.title }}</h5>
+                                <p class="card-text">{{ article.description }}</p>
+                                <p class="card-text">
+                                    <a href="{{ article.url }}" class="news-source" target="_blank">{{ article.source.name }}</a>
+                                    <br><span class="published-date">{{ article.publishedAt | safe }}</span>
+                                </p>
+                                <a href="{{ article.url }}" class="btn btn-dark-green" target="_blank">Read more</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No articles found</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#news-form").on("submit", function(event) {
+                event.preventDefault();
+                let keyword = $("#keyword").val();
+
+                $.get("/search_news", { keyword: keyword }, function(data) {
+                    let resultsDiv = $("#results");
+                    resultsDiv.empty();
+                    if (data.articles && data.articles.length > 0) {
+                        data.articles.forEach(article => {
+                            let publishedDate = new Date(article.publishedAt).toLocaleString('en-US', {
+                                month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true
+                            });
+                            let articleDiv = `<div class="col-md-4">
+                                <div class="card">
+                                    <img src="${article.urlToImage}" class="card-img-top" alt="Thumbnail">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${article.title}</h5>
+                                        <p class="card-text">${article.description}</p>
+                                        <p class="card-text">
+                                            <a href="${article.url}" class="news-source" target="_blank">${article.source.name}</a>
+                                            <br><span class="published-date">${publishedDate}</span>
+                                        </p>
+                                        <a href="${article.url}" class="btn btn-dark-green" target="_blank">Read more</a>
+                                    </div>
+                                </div>
+                            </div>`;
+                            resultsDiv.append(articleDiv);
+                        });
+                    } else if (data.message) {
+                        resultsDiv.append(`<p>${data.message}</p>`);
+                    } else {
+                        resultsDiv.append("<p>No articles found</p>");
+                    }
+                }).fail(function(xhr, status, error) {
+                    $("#results").empty().append(`<p>Error: ${error}</p>`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
